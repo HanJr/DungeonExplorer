@@ -7,12 +7,18 @@ import java.util.ArrayList;
 public class Background {
 	
 	private ArrayList<BufferedImage> bgList;
+	private BufferedImage bgImage;
 	int x, y = 0;
 	int bgCurrent = 0;
 	
 	
 	public Background(ArrayList<BufferedImage> bgList) {
 		this.bgList = bgList;
+		bgImage = bgList.get(bgCurrent);
+	}
+	
+	public Background(BufferedImage bgImage) {
+		this.bgImage = bgImage;
 	}
 	
 	public int getX() {
@@ -27,10 +33,11 @@ public class Background {
 			bgCurrent++;
 			if(bgCurrent >= bgList.size())
 				bgCurrent = 0;
+			bgImage = bgList.get(bgCurrent);
 		}
 	}
 	
-	public void render(Graphics g) {
-		g.drawImage(bgList.get(bgCurrent), x, y, bgList.get(bgCurrent).getWidth() * 2 , 1080 , null);
+	public void render(Graphics g, int scale) {
+		g.drawImage(bgImage, x, y, bgImage.getWidth() * scale , 1080 , null);
 	}
 }

@@ -8,6 +8,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import com.hanjang.graphics.ImageLoader;
+import com.hanjang.graphics.SpriteSheet;
+import com.hanjang.listener.KeyboardInput;
 import com.hanjang.listener.MouseInput;
 import com.hanjang.listener.MouseMotionInput;
 
@@ -25,8 +27,13 @@ public class Game extends Canvas implements Runnable{
 	private ArrayList<Button> buttonList = new ArrayList<Button>();
 	private ArrayList<BufferedImage> bgImages = new ArrayList<BufferedImage>();
 	
-	private Background bg;
+	private Background lobbyBg;
+	private Background gameBg;
 	private BufferedImage title;
+	
+	private Player player;
+	
+	private State gameState;
 	
 	public void init() {
 		loader = new ImageLoader();
@@ -35,8 +42,9 @@ public class Game extends Canvas implements Runnable{
 		bgImages.add(loader.getImage("/lobby_background_2.png"));
 		bgImages.add(loader.getImage("/lobby_background_3.png"));
 		
-		bg = new Background(bgImages);
-
+		lobbyBg = new Background(bgImages);
+		gameBg = new Background(loader.getImage("/gameBg.png"));
+		
 		title = loader.getImage("/title.png");
 		
 		playButton = new Button(this.getWidth() / 2 - 100, this.getHeight() / 2, 200, 100, loader.getImage("/b_4.png"), loader.getImage("/b_5.png"), "Play");
@@ -47,13 +55,17 @@ public class Game extends Canvas implements Runnable{
 		buttonList.add(helpButton);
 		buttonList.add(exitButton);
 	
-		addMouseListener(new MouseInput(buttonList));
+		gameState = State.MainLobby;
+		
+		addMouseListener(new MouseInput(buttonList, this));
 		
 		addMouseMotionListener(new MouseMotionInput(playButton)); //how can I make the Button class to be able to listen the mouse Event? challenge in this class that inherits Canvas
 		addMouseMotionListener(new MouseMotionInput(helpButton));
 		addMouseMotionListener(new MouseMotionInput(exitButton));
-
-
+		
+		player = new Player(100,900, 38, 48);
+		
+		addKeyListener(new KeyboardInput(player));		
 	}
 
 	public synchronized void start() {
@@ -120,7 +132,8 @@ public class Game extends Canvas implements Runnable{
 
 	
 	public void tick() {
-		bg.tick();
+		lobbyBg.tick();
+		player.tick();
 	}
 
 	//이부분 외우기만하고 정확히 모름. Graphics g 에 어떻게 넘어가고, 어떻게 3중 버퍼가 되는지
@@ -135,21 +148,34 @@ public class Game extends Canvas implements Runnable{
 		Graphics g = bs.getDrawGraphics();
 		Graphics2D g2d = (Graphics2D) g;
 		
-		g2d.translate(bg.getX(), 0);
-		
-		bg.render(g);
-	
-		g2d.translate(-bg.getX(), -0);		
-		
-		g.drawImage(title, this.getWidth() / 2 - title.getWidth() / 2, this.getHeight() / 2 - 250, null);
-		for(int i = 0; i < buttonList.size(); i++) {
-			buttonList.get(i).render(g);
+		if(gameState == State.InGame) {
+			gameBg.render(g, 4);
+			player.render(g);
 		}
+		else if(gameState == State.MainLobby) {	
+			g2d.translate(lobbyBg.getX(), 0);
+			
+	
+				lobbyBg.render(g, 2);
 		
+			g2d.translate(-lobbyBg.getX(), -0);		
+			
+			g.drawImage(title, this.getWidth() / 2 - title.getWidth() / 2, this.getHeight() / 2 - 250, null);
+			for(int i = 0; i < buttonList.size(); i++) {
+				buttonList.get(i).render(g);
+			}
+		}
+			
 		g.dispose();
 		bs.show();
 		
 	}	
 	
+	public void setGameState(State gameState) {
+		this.gameState = gameState;
+	}
 	
+	public State getGameState() {
+		return gameState;
+	}
 }
