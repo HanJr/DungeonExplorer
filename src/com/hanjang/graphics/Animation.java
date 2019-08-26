@@ -30,6 +30,22 @@ public class Animation {
 				currentImageIndex = 0;
 		}
 	}
+
+	public void pauseAnimation(int indexNumber) {
+		currentImageIndex = indexNumber;
+	}
+	
+	public int getCurrentFrameIndex() {
+		return currentImageIndex;
+	}
+	
+	public void setCurrentFrameIndex(int indexNumber) {
+		currentImageIndex = indexNumber;
+	}
+	
+	public int getLastFrameIndex() {
+		return images.length - 1;
+	}
 	
 	public void render(Graphics g, int wScale, int hScale) {
 		g.drawImage(images[currentImageIndex], object.getX(), object.getY(), object.getWidth() * wScale , object.getHeight() * hScale, null);

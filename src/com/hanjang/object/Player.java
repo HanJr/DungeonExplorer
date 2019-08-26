@@ -9,7 +9,7 @@ import com.hanjang.graphics.SpriteSheet;
 
 public class Player extends GameObject{
 	private int velX, velY = 0;
-	private int gravity;
+	private int gravity = 1;
 	private int isFacing = 1; //1 right
 	
 	private SpriteSheet defaultRHeroSs = new SpriteSheet(new ImageLoader().getImage("/defaultRHero.png"));
@@ -79,6 +79,7 @@ public class Player extends GameObject{
 	
 	public void tick() {
 		setX(getX() + velX);
+		setY(getY() + velY);
 		
 		if(isFacing == 1) {
 			if(state == State.Standing) {
@@ -87,14 +88,30 @@ public class Player extends GameObject{
 			else if(state == State.Moving) {
 				movingRAnimation.runAnimation();	
 			}
+			//점프 고쳐야한다. 지속된 입력이 가능한것부터 고쳐라 누르고 있으면 어떻게 작동되는지도 확인하고
 			else if(state == State.Jumping) {
+				velY += gravity;
+				if(getY() > 800)
+					velY = 0;
+					
 				jumpRAnimation.runAnimation();	
 			}
-			else if(state == State.Crouching) {
-				crouchRAnimation.runAnimation();
+			else if(state == State.Crouching) { 
+				if(crouchRAnimation.getCurrentFrameIndex() < crouchRAnimation.getLastFrameIndex()) {
+					crouchRAnimation.runAnimation();
+				}
+				else if(crouchRAnimation.getCurrentFrameIndex() >= crouchRAnimation.getLastFrameIndex()) {
+					crouchRAnimation.pauseAnimation(crouchRAnimation.getLastFrameIndex());
+				}
 			}
 			else if(state == State.Attacking) {
-				attackRAnimation.runAnimation();
+				if(attackRAnimation.getCurrentFrameIndex() < attackRAnimation.getLastFrameIndex()) {
+					attackRAnimation.runAnimation();
+				}
+				else if(attackRAnimation.getCurrentFrameIndex() >= attackRAnimation.getLastFrameIndex()) {
+					state = State.Standing;
+					attackRAnimation.setCurrentFrameIndex(0);
+				}
 			}
 		}
 		else if(isFacing == -1) {
@@ -108,12 +125,32 @@ public class Player extends GameObject{
 				jumpLAnimation.runAnimation();
 			}
 			else if(state == State.Crouching) {
-				crouchLAnimation.runAnimation();
+				if(crouchLAnimation.getCurrentFrameIndex() < crouchLAnimation.getLastFrameIndex()) {
+					crouchLAnimation.runAnimation();
+				}
+				else if(crouchLAnimation.getCurrentFrameIndex() >= crouchLAnimation.getLastFrameIndex()) {
+					crouchLAnimation.pauseAnimation(crouchLAnimation.getLastFrameIndex());
+				}
 			}
 			else if(state == State.Attacking) {
-				attackLAnimation.runAnimation();
+				if(attackLAnimation.getCurrentFrameIndex() < attackLAnimation.getLastFrameIndex()) {
+					attackLAnimation.runAnimation();
+				}
+				else if(attackLAnimation.getCurrentFrameIndex() >= attackLAnimation.getLastFrameIndex()) {
+					state = State.Standing;
+					attackLAnimation.setCurrentFrameIndex(0);
+				}
 			}			
 		}
+	}
+	
+	public State getState() {
+		return state;
+	}
+	
+	public void crouchingReset() {
+		crouchRAnimation.setCurrentFrameIndex(0);
+		crouchLAnimation.setCurrentFrameIndex(0);
 	}
 	
 	public int getIsFacing() {
@@ -145,7 +182,7 @@ public class Player extends GameObject{
 				movingRAnimation.render(g, 4, 3);			
 			}
 			else if(state == State.Jumping) {
-				jumpRAnimation.render(g, 4, 3);			
+				jumpRAnimation.render(g, 5, 4);			
 			}
 			else if(state == State.Crouching) {
 				crouchRAnimation.render(g, 3, 3);
@@ -162,7 +199,7 @@ public class Player extends GameObject{
 				movingLAnimation.render(g, 4, 3);		
 			}
 			else if(state == State.Jumping) {
-				jumpLAnimation.render(g, 4, 3);	
+				jumpLAnimation.render(g, 5, 4);	
 			}
 			else if(state == State.Crouching) {
 				crouchLAnimation.render(g, 3, 3);
