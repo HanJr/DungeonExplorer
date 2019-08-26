@@ -10,24 +10,44 @@ import com.hanjang.graphics.SpriteSheet;
 public class Player extends GameObject{
 	private int velX, velY = 0;
 	private int gravity;
+	private int isFacing = 1; //1 right
 	
 	private SpriteSheet defaultRHeroSs = new SpriteSheet(new ImageLoader().getImage("/defaultRHero.png"));
 	private SpriteSheet defaultLHeroSs = new SpriteSheet(new ImageLoader().getImage("/defaultLHero.png"));
 	private SpriteSheet movingRHeroSs = new SpriteSheet(new ImageLoader().getImage("/movingRHero.png"));
 	private SpriteSheet movingLHeroSs = new SpriteSheet(new ImageLoader().getImage("/movingLHero.png"));
+
+	private SpriteSheet jumpRHeroSs = new SpriteSheet(new ImageLoader().getImage("/jumpRHero.png"));
+	private SpriteSheet crouchRHeroSs = new SpriteSheet(new ImageLoader().getImage("/crouchRHero.png"));
+	private SpriteSheet attackRHeroSs = new SpriteSheet(new ImageLoader().getImage("/attackRHero.png"));
+	private SpriteSheet jumpLHeroSs = new SpriteSheet(new ImageLoader().getImage("/jumpLHero.png"));
+	private SpriteSheet crouchLHeroSs = new SpriteSheet(new ImageLoader().getImage("/crouchLHero.png"));
+	private SpriteSheet attackLHeroSs = new SpriteSheet(new ImageLoader().getImage("/attackLHero.png"));
 	
 	private BufferedImage defaultRImages[];
 	private BufferedImage defaultLImages[];
 	private BufferedImage movingRImages[];
 	private BufferedImage movingLImages[];
-			
 	
-	private State state = State.StandingR;
+	private BufferedImage jumpRImages[];
+	private BufferedImage crouchRImages[];
+	private BufferedImage attackRImages[];
+	private BufferedImage jumpLImages[];
+	private BufferedImage crouchLImages[];
+	private BufferedImage attackLImages[];			
+	
+	private State state = State.Standing;
 	
 	private Animation defaultRAnimation;
 	private Animation defaultLAnimation;
 	private Animation movingLAnimation;
 	private Animation movingRAnimation;
+	private Animation jumpRAnimation;
+	private Animation jumpLAnimation;
+	private Animation crouchRAnimation;
+	private Animation crouchLAnimation;
+	private Animation attackRAnimation;
+	private Animation attackLAnimation;
 	
 	public Player(int x, int y, int width, int height) {
 		super(x, y, width, height); //may need modification for jumping / crouching
@@ -37,29 +57,73 @@ public class Player extends GameObject{
 		movingRImages = movingRHeroSs.grabImageSet(0, 66, 48, 12, 1);
 		movingLImages = movingLHeroSs.grabImageSet(726, 66, 48, 12, -1);
 		
+		jumpRImages = jumpRHeroSs.grabImageSet(0, 61, 77, 5, 1);
+		crouchRImages = crouchRHeroSs.grabImageSet(0, 48, 48, 3, 1);
+		attackRImages = attackRHeroSs.grabImageSet(0, 96, 48, 6, 1);
+		jumpLImages = jumpLHeroSs.grabImageSet(244, 61, 77, 5, -1);
+		crouchLImages = crouchLHeroSs.grabImageSet(96, 48, 48, 3, -1);
+		attackLImages = attackLHeroSs.grabImageSet(480, 96, 48, 6, -1);	
+		
 		defaultRAnimation = new Animation(7, defaultRImages, this);
 		defaultLAnimation = new Animation(7, defaultLImages, this);
 		movingRAnimation = new Animation(4, movingRImages, this);
 		movingLAnimation = new Animation(4, movingLImages, this);
+		
+		jumpRAnimation = new Animation(5, jumpRImages, this);
+		jumpLAnimation = new Animation(5, jumpLImages, this);
+		crouchRAnimation = new Animation(5, crouchRImages, this); 
+		crouchLAnimation = new Animation(5, crouchLImages, this);
+		attackRAnimation = new Animation(5, attackRImages, this);
+		attackLAnimation = new Animation(5, attackLImages, this);
 	}
 	
 	public void tick() {
 		setX(getX() + velX);
-		if(state == State.StandingR) {
-			defaultRAnimation.runAnimation();
+		
+		if(isFacing == 1) {
+			if(state == State.Standing) {
+				defaultRAnimation.runAnimation();
+			}
+			else if(state == State.Moving) {
+				movingRAnimation.runAnimation();	
+			}
+			else if(state == State.Jumping) {
+				jumpRAnimation.runAnimation();	
+			}
+			else if(state == State.Crouching) {
+				crouchRAnimation.runAnimation();
+			}
+			else if(state == State.Attacking) {
+				attackRAnimation.runAnimation();
+			}
 		}
-		else if(state == State.StandingL) {
-			defaultLAnimation.runAnimation();
+		else if(isFacing == -1) {
+			if(state == State.Standing) {
+				defaultLAnimation.runAnimation();
+			}
+			else if(state == State.Moving) {
+				movingLAnimation.runAnimation();	
+			}
+			else if(state == State.Jumping) {
+				jumpLAnimation.runAnimation();
+			}
+			else if(state == State.Crouching) {
+				crouchLAnimation.runAnimation();
+			}
+			else if(state == State.Attacking) {
+				attackLAnimation.runAnimation();
+			}			
 		}
-		else if(state == State.MovingRight) {
-			movingRAnimation.runAnimation();
-		}
-		else if(state == State.MovingLeft) {
-			movingLAnimation.runAnimation();
-		}
-	
 	}
 	
+	public int getIsFacing() {
+		return isFacing;
+	}
+
+	public void setIsFacing(int isFacing) {
+		this.isFacing = isFacing;
+	}
+
 	public void setState(State state) {
 		this.state = state;
 	}
@@ -73,17 +137,39 @@ public class Player extends GameObject{
 	}
 	
 	public void render(Graphics g) {
-		if(state == State.StandingR) {
-			defaultRAnimation.render(g, 3, 3);
+		if(isFacing == 1) {
+			if(state == State.Standing) {
+				defaultRAnimation.render(g, 3, 3);
+			}
+			else if(state == State.Moving) {
+				movingRAnimation.render(g, 4, 3);			
+			}
+			else if(state == State.Jumping) {
+				jumpRAnimation.render(g, 4, 3);			
+			}
+			else if(state == State.Crouching) {
+				crouchRAnimation.render(g, 3, 3);
+			}
+			else if(state == State.Attacking) {
+				attackRAnimation.render(g, 5, 3);
+			}
 		}
-		else if(state == State.StandingL) {
-			defaultLAnimation.render(g, 3, 3);
-		}
-		else if(state == State.MovingRight) {
-			movingRAnimation.render(g, 4, 3);
-		}
-		else if(state == State.MovingLeft) {
-			movingLAnimation.render(g, 4, 3);
+		else if(isFacing == -1) {
+			if(state == State.Standing) {
+				defaultLAnimation.render(g, 3, 3);		
+			}
+			else if(state == State.Moving) {
+				movingLAnimation.render(g, 4, 3);		
+			}
+			else if(state == State.Jumping) {
+				jumpLAnimation.render(g, 4, 3);	
+			}
+			else if(state == State.Crouching) {
+				crouchLAnimation.render(g, 3, 3);
+			}
+			else if(state == State.Attacking) {
+				attackLAnimation.render(g, 5, 3);
+			}			
 		}
 	}
 }

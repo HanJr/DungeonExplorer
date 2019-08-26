@@ -3,10 +3,9 @@ package com.hanjang.object;
 public enum State {
 	MainLobby,
 	InGame,
-	StandingR,
-	StandingL,
-	MovingRight,
-	MovingLeft,
+	Standing,
+	Moving,
 	Crouching,
-	Jumping
+	Jumping,
+	Attacking
 }
