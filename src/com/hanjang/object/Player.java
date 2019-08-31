@@ -7,6 +7,7 @@ import com.hanjang.graphics.Animation;
 import com.hanjang.graphics.ImageLoader;
 import com.hanjang.graphics.SpriteSheet;
 
+//How could I increase the reusability of this class
 public class Player extends GameObject{
 	private int velX, velY = 0;
 	private int gravity = 1;
@@ -69,6 +70,7 @@ public class Player extends GameObject{
 		movingRAnimation = new Animation(4, movingRImages, this);
 		movingLAnimation = new Animation(4, movingLImages, this);
 		
+		//공중에서 방향전환을 할 때에, 그 전환된 방향이 맞아 떨어져야한다. 어떻게 할까? 어떻게 싱크로나이즈 할까?
 		jumpRAnimation = new Animation(5, jumpRImages, this);
 		jumpLAnimation = new Animation(5, jumpLImages, this);
 		crouchRAnimation = new Animation(5, crouchRImages, this); 
@@ -79,8 +81,18 @@ public class Player extends GameObject{
 	
 	public void tick() {
 		setX(getX() + velX);
-		setY(getY() + velY);
 		
+		setY(getY() + velY);
+		velY += gravity;
+		if(getY() > 870) {
+			velY = 0;
+			//움직임 변화가 필요하다.
+			if(state == State.Jumping && velX != 0)
+				state = State.Moving;
+			else if(state == State.Jumping)
+				state = State.Standing;
+		}
+		//애니메이션만 관리하는 것임을 주목하라, velY나 velX와 같은 실직적 움직임은 키보드인풋에서 관리된다
 		if(isFacing == 1) {
 			if(state == State.Standing) {
 				defaultRAnimation.runAnimation();
@@ -90,12 +102,18 @@ public class Player extends GameObject{
 			}
 			//점프 고쳐야한다. 지속된 입력이 가능한것부터 고쳐라 누르고 있으면 어떻게 작동되는지도 확인하고
 			else if(state == State.Jumping) {
-				velY += gravity;
-				if(getY() > 800)
-					velY = 0;
-					
-				jumpRAnimation.runAnimation();	
+				if(jumpLAnimation.getCurrentFrameIndex() > 0) {
+					jumpRAnimation.setCurrentFrameIndex(jumpLAnimation.getCurrentFrameIndex());
+					jumpLAnimation.setCurrentFrameIndex(0);
+				}
+				if(jumpRAnimation.getCurrentFrameIndex() < jumpRAnimation.getLastFrameIndex()) {
+					jumpRAnimation.runAnimation();
+				}
+				else if(jumpRAnimation.getCurrentFrameIndex() >= jumpRAnimation.getLastFrameIndex()) {
+					jumpRAnimation.pauseAnimation(jumpRAnimation.getLastFrameIndex());
+				}
 			}
+			//NON REPEATING ANIMATION
 			else if(state == State.Crouching) { 
 				if(crouchRAnimation.getCurrentFrameIndex() < crouchRAnimation.getLastFrameIndex()) {
 					crouchRAnimation.runAnimation();
@@ -104,6 +122,7 @@ public class Player extends GameObject{
 					crouchRAnimation.pauseAnimation(crouchRAnimation.getLastFrameIndex());
 				}
 			}
+			//NON REPEATING ANIMATION
 			else if(state == State.Attacking) {
 				if(attackRAnimation.getCurrentFrameIndex() < attackRAnimation.getLastFrameIndex()) {
 					attackRAnimation.runAnimation();
@@ -122,7 +141,16 @@ public class Player extends GameObject{
 				movingLAnimation.runAnimation();	
 			}
 			else if(state == State.Jumping) {
-				jumpLAnimation.runAnimation();
+				if(jumpRAnimation.getCurrentFrameIndex() > 0) {
+					jumpLAnimation.setCurrentFrameIndex(jumpRAnimation.getCurrentFrameIndex());
+					jumpRAnimation.setCurrentFrameIndex(0);
+				}
+				if(jumpLAnimation.getCurrentFrameIndex() < jumpLAnimation.getLastFrameIndex()) {
+					jumpLAnimation.runAnimation();
+				}
+				else if(jumpLAnimation.getCurrentFrameIndex() >= jumpLAnimation.getLastFrameIndex()) {
+					jumpLAnimation.pauseAnimation(jumpLAnimation.getLastFrameIndex());				
+				}
 			}
 			else if(state == State.Crouching) {
 				if(crouchLAnimation.getCurrentFrameIndex() < crouchLAnimation.getLastFrameIndex()) {

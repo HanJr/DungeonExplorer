@@ -19,6 +19,7 @@ public class Game extends Canvas implements Runnable{
 	private Thread thread;
 	private boolean isRunning = false;
 	private ImageLoader loader;
+	private Camera cam;
 	
 	private Button playButton;
 	private Button helpButton;
@@ -42,8 +43,8 @@ public class Game extends Canvas implements Runnable{
 		bgImages.add(loader.getImage("/lobby_background_2.png"));
 		bgImages.add(loader.getImage("/lobby_background_3.png"));
 		
-		lobbyBg = new Background(bgImages);
-		gameBg = new Background(loader.getImage("/gameBg.png"));
+		lobbyBg = new Background(bgImages, 2, 1);
+		gameBg = new Background(loader.getImage("/gameBg.png"), 4, 4);
 		
 		title = loader.getImage("/title.png");
 		
@@ -63,8 +64,8 @@ public class Game extends Canvas implements Runnable{
 		addMouseMotionListener(new MouseMotionInput(helpButton));
 		addMouseMotionListener(new MouseMotionInput(exitButton));
 		
-		player = new Player(100,900, 38, 48);
-		
+		player = new Player(0, 800, 38, 48);
+		cam = new Camera(player, this);
 		addKeyListener(new KeyboardInput(player));		
 	}
 
@@ -128,12 +129,11 @@ public class Game extends Canvas implements Runnable{
 		}
 		
 	}
-
-
 	
 	public void tick() {
 		lobbyBg.tick();
 		player.tick();
+		cam.tick();
 	}
 
 	//이부분 외우기만하고 정확히 모름. Graphics g 에 어떻게 넘어가고, 어떻게 3중 버퍼가 되는지
@@ -148,15 +148,20 @@ public class Game extends Canvas implements Runnable{
 		Graphics g = bs.getDrawGraphics();
 		Graphics2D g2d = (Graphics2D) g;
 		
+		//bg flickering. fix it
 		if(gameState == State.InGame) {
-			gameBg.render(g, 4);
+			//- (player.getWidth() * 3) determines the position of the character in camera's view, As it increases, the camera puts the hero more on the left side
+			//The same value of the above formula must be used in the Camera class's tick method.
+			if(player.getX() >= getWidth() / 2 - (player.getWidth() * 3))
+				g2d.translate(cam.getX(), cam.getY());
+			gameBg.render(g);
 			player.render(g);
 		}
 		else if(gameState == State.MainLobby) {	
 			g2d.translate(lobbyBg.getX(), 0);
 			
 	
-				lobbyBg.render(g, 2);
+				lobbyBg.render(g);
 		
 			g2d.translate(-lobbyBg.getX(), -0);		
 			
